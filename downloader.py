@@ -119,8 +119,3 @@ class DownloadTSE:
     def download_por_anos(self, anos:list):
         for ano in track(anos, description="Baixando dados dos anos..."):
             self.download_por_ano(ano)
-
-
-# %%
-downloader = DownloadTSE()
-downloader.download_por_ano(2024)
