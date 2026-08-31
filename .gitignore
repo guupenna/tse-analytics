@@ -1,3 +1,8 @@
+# Data
+*.csv
+*.zip
+*.pdf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -216,3 +221,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Vscode
+.vscode
+# Dados brutos e banco local (reproduzíveis via main.py + src/ingestao.py)
+data/
+*.db
+*.sqlite
+*.sqlite3

@@ -122,6 +122,7 @@ class DownloadTSE:
             self.download_por_ano(ano)
 
 
+# %%
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Baixar dados do TSE")
@@ -131,4 +132,4 @@ if __name__ == "__main__":
     args= parser.parse_args()
 
     downloader = DownloadTSE()
-    downloader.download_por_anos(args.inicio, args.fim + 1, args.intervalo)
+    downloader.download_por_anos(range(args.inicio, args.fim + 1, args.intervalo))
