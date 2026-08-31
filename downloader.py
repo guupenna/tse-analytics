@@ -2,6 +2,7 @@
 import requests
 import os
 import http
+import argparse
 
 from rich.progress import track
 
@@ -119,3 +120,15 @@ class DownloadTSE:
     def download_por_anos(self, anos:list):
         for ano in track(anos, description="Baixando dados dos anos..."):
             self.download_por_ano(ano)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Baixar dados do TSE")
+    parser.add_argument("--inicio", "-i", type=int, help="Primeiro ano a ser baixado")
+    parser.add_argument("--fim", "-f", type=int, help="Último ano a ser baixado")
+    parser.add_argument("--intervalo", type=int, default=2, help="Interavalo entre os anos a serem baixados")
+    args= parser.parse_args()
+
+    downloader = DownloadTSE()
+    downloader.download_por_anos(args.inicio, args.fim + 1, args.intervalo)
