@@ -3,6 +3,7 @@ WITH tb_cand AS (
         SQ_CANDIDATO,
         SG_UF,
         DS_CARGO,
+        NR_PARTIDO,
         SG_PARTIDO,
         NM_PARTIDO,
         DT_NASCIMENTO,
@@ -12,6 +13,24 @@ WITH tb_cand AS (
         DS_COR_RACA,
         DS_OCUPACAO
     FROM tb_candidaturas
+),
+tb_partido_canonico AS (
+    SELECT
+        NR_PARTIDO,
+        SG_PARTIDO,
+        NM_PARTIDO
+    FROM (
+        SELECT
+            NR_PARTIDO,
+            SG_PARTIDO,
+            NM_PARTIDO,
+            ROW_NUMBER() OVER (
+                PARTITION BY NR_PARTIDO ORDER BY count(*) DESC
+            ) AS ordem
+        FROM tb_candidaturas
+        GROUP BY NR_PARTIDO, SG_PARTIDO, NM_PARTIDO
+    ) AS tb_grafias
+    WHERE ordem = 1
 ),
 tb_total_bens AS (
     SELECT
@@ -30,9 +49,9 @@ tb_info_completa_cand AS (
 ),
 tb_group_uf AS (
     SELECT
-        SG_PARTIDO,
-        NM_PARTIDO,
-        SG_UF,
+        p.SG_PARTIDO,
+        p.NM_PARTIDO,
+        t1.SG_UF,
         AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGeneroFeminino,
         SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGeneroFeminino,
         AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
@@ -41,6 +60,8 @@ tb_group_uf AS (
         SUM(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
         count(*) AS totalCandidatos
     FROM tb_info_completa_cand AS t1
+    LEFT JOIN tb_partido_canonico AS p
+    ON t1.NR_PARTIDO = p.NR_PARTIDO
     GROUP BY 1, 2, 3
 ),
 tb_all AS (
