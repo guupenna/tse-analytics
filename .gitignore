@@ -224,8 +224,10 @@ __marimo__/
 
 # Vscode
 .vscode
-# Dados brutos e banco local (reproduzíveis via main.py + src/ingestao.py)
-data/
+# Dados brutos e banco local (reproduzíveis via main.py + src/ingestao.py).
+# O extrato agregado (34 KB) e versionado: e o que o app le em producao.
+data/*
+!data/data_partidos.parquet
 *.db
 *.sqlite
 *.sqlite3
