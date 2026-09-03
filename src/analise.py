@@ -142,5 +142,3 @@ plt.axvline(x=txGeneroFeminino,
 plt.legend(loc="lower right")
 plt.savefig("../img/partidos_cluster.png")
 plt.show()
-
-# %%

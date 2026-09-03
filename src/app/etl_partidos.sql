@@ -69,19 +69,20 @@ tb_group_br AS (
         SG_PARTIDO,
         NM_PARTIDO,
         'BR' AS SG_UF,
-        totalGeneroFeminino / SUM(totalCandidatos) AS txGeneroFeminino,
+        1.0 * SUM(totalGeneroFeminino) / SUM(totalCandidatos) AS txGeneroFeminino,
         1.0 * SUM(totalGeneroFeminino) AS totalGeneroFeminino,
-        totalCorRacaPreta / SUM(totalCandidatos) AS txCorRacaPreta,
+        1.0 * SUM(totalCorRacaPreta) / SUM(totalCandidatos) AS txCorRacaPreta,
         1.0 * SUM(totalCorRacaPreta) AS totalCorRacaPreta,
-        totalCorRacaNaoBranca / SUM(totalCandidatos) AS txCorRacaNaoBranca,
+        1.0 * SUM(totalCorRacaNaoBranca) / SUM(totalCandidatos) AS txCorRacaNaoBranca,
         1.0 * SUM(totalCorRacaNaoBranca) AS totalCorRacaNaoBranca,
         SUM(totalCandidatos) AS totalCandidatos
     FROM tb_group_uf
+    GROUP BY 1, 2
 ),
 tb_union_all AS (
     SELECT * FROM tb_group_br
 
-    UNION
+    UNION ALL
 
     SELECT * FROM tb_group_uf
 )
