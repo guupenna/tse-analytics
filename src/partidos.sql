@@ -150,7 +150,12 @@ tb_all AS (
         SUM(CASE WHEN SG_UF = 'SE' THEN txCorRacaNaoBranca ELSE 0 END) AS txCorRacaNaoBrancaSE,
         SUM(CASE WHEN SG_UF = 'SP' THEN txCorRacaNaoBranca ELSE 0 END) AS txCorRacaNaoBrancaSP,
         SUM(CASE WHEN SG_UF = 'TO' THEN txCorRacaNaoBranca ELSE 0 END) AS txCorRacaNaoBrancaTO,
-        1.0 * SUM(totalCorRacaNaoBranca) / SUM(totalCandidatos) AS txCorRacaNaoBrancaBR
+        1.0 * SUM(totalCorRacaNaoBranca) / SUM(totalCandidatos) AS txCorRacaNaoBrancaBR,
+
+        SUM(totalGeneroFeminino) AS totalGeneroFeminino,
+        SUM(totalCorRacaPreta) AS totalCorRacaPreta,
+        SUM(totalCorRacaNaoBranca) AS totalCorRacaNaoBranca,
+        SUM(totalCandidatos) AS totalCandidatos 
     FROM tb_group_uf
     GROUP BY 1, 2
 )
