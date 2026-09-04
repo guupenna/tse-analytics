@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import streamlit as st
 
-from utils import METRICAS, make_clusters, make_scatterplot
+from utils import METRICAS, make_clusters, make_scatterplot, rotulo
 
 app_path = os.path.dirname(os.path.abspath(__file__))
 src_path = os.path.dirname(app_path)
@@ -42,26 +42,16 @@ cargo_options = ["GERAL"] + sorted(c for c in df["DS_CARGO"].unique() if c != "G
 metrica_options = list(METRICAS)
 
 
-def rotulo(m):
-    return METRICAS[m][0]
-
-
 with st.container(border=True):
     c1, c2, c3, c4 = st.columns([1, 1.4, 1.7, 1.7])
-    estado = c1.selectbox("Estado", uf_options,
-                          help="BR agrega todas as unidades da federação.")
-    cargo = c2.selectbox("Cargo", cargo_options,
-                         help="GERAL soma os três cargos em disputa.")
-    x = c3.selectbox("Eixo horizontal", metrica_options,
-                     format_func=rotulo, index=0)
-    y = c4.selectbox("Eixo vertical", metrica_options,
-                     format_func=rotulo, index=1)
+    estado = c1.selectbox("Estado", uf_options, help="BR agrega todas as unidades da federação.")
+    cargo = c2.selectbox("Cargo", cargo_options, help="GERAL soma os três cargos em disputa.")
+    x = c3.selectbox("Eixo X", metrica_options, format_func=rotulo, index=0)
+    y = c4.selectbox("Eixo Y", metrica_options, format_func=rotulo, index=1)
 
     t1, t2, _ = st.columns([1.2, 1.2, 3])
-    size = t1.toggle("Dimensionar por volume",
-                     help="O tamanho da bolha reflete o número de candidaturas.")
-    cluster = t2.toggle("Agrupar por perfil",
-                        help="Agrupa partidos com perfis semelhantes.")
+    size = t1.toggle("Dimensionar por tamanho partido", help="O tamanho da bolha reflete o número de candidaturas.")
+    cluster = t2.toggle("Agrupar por perfil", help="Agrupa partidos com perfis semelhantes.")
 
 data = df[(df["SG_UF"] == estado) & (df["DS_CARGO"] == cargo)]
 
@@ -70,7 +60,7 @@ if data.empty:
     st.stop()
 
 if cluster:
-    data = make_clusters(data)
+    data = make_clusters(data, x, y)
 
 col_grafico, col_leitura = st.columns([3, 1], gap="large")
 
@@ -80,15 +70,15 @@ with col_grafico:
 with col_leitura:
     st.markdown("#### Como ler")
     st.markdown(
-        f"Cada ponto é um partido. As linhas tracejadas marcam a taxa do "
-        f"recorte selecionado (**{estado} - {cargo.lower()}**), então elas se "
-        f"movem quando você troca o filtro.\n\n"
+        f"Cada ponto é um partido. As linhas tracejadas marcam o valor "
+        f"agregado do recorte selecionado (**{estado} - {cargo.lower()}**), "
+        f"então elas se movem quando você troca o filtro.\n\n"
         f"Partidos no **canto inferior esquerdo** ficam abaixo da média nos "
         f"dois indicadores e partidos no **superior direito**, acima nos dois."
     )
     if size:
-        st.info("Bolhas maiores = mais candidaturas.", icon="⬤")
+        st.info("Bolhas maiores = mais candidaturas.")
     if cluster:
-        st.info("Cores agrupam partidos de perfil semelhante.", icon="◆")
+        st.info("Cores agrupam partidos próximos nos dois eixos escolhidos.")
 
 st.markdown('<p class="rodape">Dados: Tribunal Superior Eleitoral', unsafe_allow_html=True)

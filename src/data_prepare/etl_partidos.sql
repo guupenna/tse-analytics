@@ -42,7 +42,14 @@ tb_total_bens AS (
 tb_info_completa_cand AS (
     SELECT
         t1.*,
-        COALESCE(t2.total_bens, 0) AS totalBens
+        COALESCE(t2.total_bens, 0) AS totalBens,
+        CAST(
+            (julianday('2024-10-06') - julianday(
+                substr(DT_NASCIMENTO, 7, 4) || '-' ||
+                substr(DT_NASCIMENTO, 4, 2) || '-' ||
+                substr(DT_NASCIMENTO, 1, 2)
+            )) / 365.25
+        AS INT) AS NR_IDADE
     FROM tb_cand AS t1
     LEFT JOIN tb_total_bens AS t2
     ON t1.SQ_CANDIDATO = t2.SQ_CANDIDATO
@@ -59,6 +66,13 @@ tb_group_uf AS (
         SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
         AVG(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
         SUM(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        SUM(t1.totalBens) AS totalBens,
+        AVG(t1.totalBens) AS avgBens,
+        COALESCE(AVG(CASE WHEN totalBens > 1 THEN totalBens END), 0) AS avgBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN totalBens ELSE 0 END) AS totalBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN 1 ELSE 0 END) AS totalCandidatosNotZero,
+        AVG(t1.NR_IDADE) AS avgIdade,
+        SUM(t1.NR_IDADE) AS totalIdade,
         count(*) AS totalCandidatos
     FROM tb_info_completa_cand AS t1
     LEFT JOIN tb_partido_tratado AS p
@@ -77,6 +91,13 @@ tb_group_br AS (
         SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
         AVG(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
         SUM(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        SUM(t1.totalBens) AS totalBens,
+        AVG(t1.totalBens) AS avgBens,
+        COALESCE(AVG(CASE WHEN totalBens > 1 THEN totalBens END), 0) AS avgBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN totalBens ELSE 0 END) AS totalBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN 1 ELSE 0 END) AS totalCandidatosNotZero,
+        AVG(t1.NR_IDADE) AS avgIdade,
+        SUM(t1.NR_IDADE) AS totalIdade,
         count(*) AS totalCandidatos
     FROM tb_info_completa_cand AS t1
     LEFT JOIN tb_partido_tratado AS p
@@ -95,6 +116,13 @@ tb_group_cargo_uf AS (
         SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
         AVG(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
         SUM(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        SUM(t1.totalBens) AS totalBens,
+        AVG(t1.totalBens) AS avgBens,
+        COALESCE(AVG(CASE WHEN totalBens > 1 THEN totalBens END), 0) AS avgBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN totalBens ELSE 0 END) AS totalBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN 1 ELSE 0 END) AS totalCandidatosNotZero,
+        AVG(t1.NR_IDADE) AS avgIdade,
+        SUM(t1.NR_IDADE) AS totalIdade,
         count(*) AS totalCandidatos
     FROM tb_info_completa_cand AS t1
     LEFT JOIN tb_partido_tratado AS p
@@ -103,18 +131,27 @@ tb_group_cargo_uf AS (
 ),
 tb_group_cargo_br AS (
     SELECT
-        SG_PARTIDO,
-        NM_PARTIDO,
-        DS_CARGO,
+        p.SG_PARTIDO,
+        p.NM_PARTIDO,
+        t1.DS_CARGO,
         'BR' AS SG_UF,
-        1.0 * SUM(totalGeneroFeminino) / SUM(totalCandidatos) AS txGeneroFeminino,
-        1.0 * SUM(totalGeneroFeminino) AS totalGeneroFeminino,
-        1.0 * SUM(totalCorRacaPreta) / SUM(totalCandidatos) AS txCorRacaPreta,
-        1.0 * SUM(totalCorRacaPreta) AS totalCorRacaPreta,
-        1.0 * SUM(totalCorRacaNaoBranca) / SUM(totalCandidatos) AS txCorRacaNaoBranca,
-        1.0 * SUM(totalCorRacaNaoBranca) AS totalCorRacaNaoBranca,
-        SUM(totalCandidatos) AS totalCandidatos
-    FROM tb_group_cargo_uf
+        AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGeneroFeminino,
+        SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGeneroFeminino,
+        AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
+        SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
+        AVG(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
+        SUM(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        SUM(t1.totalBens) AS totalBens,
+        AVG(t1.totalBens) AS avgBens,
+        COALESCE(AVG(CASE WHEN totalBens > 1 THEN totalBens END), 0) AS avgBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN totalBens ELSE 0 END) AS totalBensNotZero,
+        SUM(CASE WHEN totalBens > 1 THEN 1 ELSE 0 END) AS totalCandidatosNotZero,
+        AVG(t1.NR_IDADE) AS avgIdade,
+        SUM(t1.NR_IDADE) AS totalIdade,
+        count(*) AS totalCandidatos
+    FROM tb_info_completa_cand AS t1
+    LEFT JOIN tb_partido_tratado AS p
+    ON t1.NR_PARTIDO = p.NR_PARTIDO
     GROUP BY 1, 2, 3
 ),
 tb_union_all AS (
