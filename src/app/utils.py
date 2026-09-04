@@ -3,7 +3,7 @@ import seaborn as sns
 from adjustText import adjust_text
 from sklearn.cluster import KMeans
 
-def make_scatterplot(data, estado, cluster=False, size=False):
+def make_scatterplot(data, estado="BR", cargo="GERAL", size=False, cluster=False):
     txGeneroFeminino = data["totalGeneroFeminino"].sum() / data["totalCandidatos"].sum()
     txCorRacaPreta = data["totalCorRacaPreta"].sum() / data["totalCandidatos"].sum()
 
@@ -53,7 +53,7 @@ def make_scatterplot(data, estado, cluster=False, size=False):
             label=f"Taxa {estado} Gênero Feminino: {txGeneroFeminino:.1%}")
     ax.legend(loc="lower right")
 
-    fig.suptitle(f"Partidos: Cor/Raça vs Gênero - Eleições 2024 ({estado})")
+    fig.suptitle(f"Partidos: Cor/Raça vs Gênero - Eleições 2024 ({estado} · {cargo})")
     if size:
         ax.set_title("Quanto maior a bolha, maior o número de candidaturas", fontsize=9)
     fig.tight_layout()

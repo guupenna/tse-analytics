@@ -51,23 +51,61 @@ tb_group_uf AS (
     SELECT
         p.SG_PARTIDO,
         p.NM_PARTIDO,
+        'GERAL' AS DS_CARGO,
         t1.SG_UF,
         AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGeneroFeminino,
         SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGeneroFeminino,
         AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
         SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
-        AVG(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
-        SUM(CASE WHEN DS_COR_RACA <> 'BRANCA' THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        AVG(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
+        SUM(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
         count(*) AS totalCandidatos
     FROM tb_info_completa_cand AS t1
     LEFT JOIN tb_partido_tratado AS p
     ON t1.NR_PARTIDO = p.NR_PARTIDO
-    GROUP BY 1, 2, 3
+    GROUP BY 1, 2, 4
 ),
 tb_group_br AS (
     SELECT
+        p.SG_PARTIDO,
+        p.NM_PARTIDO,
+        'GERAL' AS DS_CARGO,
+        'BR' AS SG_UF,
+        AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGeneroFeminino,
+        SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGeneroFeminino,
+        AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
+        SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
+        AVG(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
+        SUM(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        count(*) AS totalCandidatos
+    FROM tb_info_completa_cand AS t1
+    LEFT JOIN tb_partido_tratado AS p
+    ON t1.NR_PARTIDO = p.NR_PARTIDO
+    GROUP BY 1, 2
+),
+tb_group_cargo_uf AS (
+    SELECT
+        p.SG_PARTIDO,
+        p.NM_PARTIDO,
+        t1.DS_CARGO,
+        t1.SG_UF,
+        AVG(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS txGeneroFeminino,
+        SUM(CASE WHEN DS_GENERO = 'FEMININO' THEN 1 ELSE 0 END) AS totalGeneroFeminino,
+        AVG(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS txCorRacaPreta,
+        SUM(CASE WHEN DS_COR_RACA = 'PRETA' THEN 1 ELSE 0 END) AS totalCorRacaPreta,
+        AVG(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS txCorRacaNaoBranca,
+        SUM(CASE WHEN DS_COR_RACA NOT IN ('BRANCA', 'NÃO INFORMADO', 'NÃO DIVULGÁVEL') THEN 1 ELSE 0 END) AS totalCorRacaNaoBranca,
+        count(*) AS totalCandidatos
+    FROM tb_info_completa_cand AS t1
+    LEFT JOIN tb_partido_tratado AS p
+    ON t1.NR_PARTIDO = p.NR_PARTIDO
+    GROUP BY 1, 2, 3, 4
+),
+tb_group_cargo_br AS (
+    SELECT
         SG_PARTIDO,
         NM_PARTIDO,
+        DS_CARGO,
         'BR' AS SG_UF,
         1.0 * SUM(totalGeneroFeminino) / SUM(totalCandidatos) AS txGeneroFeminino,
         1.0 * SUM(totalGeneroFeminino) AS totalGeneroFeminino,
@@ -76,8 +114,8 @@ tb_group_br AS (
         1.0 * SUM(totalCorRacaNaoBranca) / SUM(totalCandidatos) AS txCorRacaNaoBranca,
         1.0 * SUM(totalCorRacaNaoBranca) AS totalCorRacaNaoBranca,
         SUM(totalCandidatos) AS totalCandidatos
-    FROM tb_group_uf
-    GROUP BY 1, 2
+    FROM tb_group_cargo_uf
+    GROUP BY 1, 2, 3
 ),
 tb_union_all AS (
     SELECT * FROM tb_group_br
@@ -85,10 +123,17 @@ tb_union_all AS (
     UNION ALL
 
     SELECT * FROM tb_group_uf
+
+    UNION ALL
+
+    SELECT * FROM tb_group_cargo_uf
+
+    UNION ALL
+
+    SELECT * FROM tb_group_cargo_br
 )
 
 SELECT * FROM tb_union_all;
-
 -- tb_all AS (
 --     SELECT
 --         SG_PARTIDO,
